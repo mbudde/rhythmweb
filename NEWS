@@ -1,0 +1,37 @@
+
+Overview of changes in Rhythmweb 0.4
+====================================
+
+* publish player URL using mDNS (a.k.a Rendezvous, Bonjour, Zeroconf)
+  so it shows up in Epiphany's Bookmarks > Nearby Sites menu
+* chrome changes to make RW look more like RB
+* play the first entry from the play queue if nothing is already playing
+* refresh when the song should end so the details get updated
+* display a basic play queue
+
+
+Feel free to send me some screenshots of RW next to RB using different themes
+so I can get an idea of what it looks like (or how much it sucks) using Your
+Favourite Theme.
+
+Contributors to the release:
+- Michael Gratton
+- Jonathan Matthew
+
+Overview of changes in Rhythmweb 0.3
+====================================
+
+* display the title, artist and album when playing from a stream
+* updated now-playing text style to match RB
+* use UTF-8 for player HTTP response
+* redirect request logging to RB's debug log, to enable, run RB
+  with -D rhythmweb
+* make titles on player toolbar buttons actually show up as tooltips
+
+And some other assorted bug fixes. Thanks to Jonathan Matthew for a
+whole lot of patches.
+
+Contributors to the release:
+- Michael Gratton
+- Jonathan Matthew
+

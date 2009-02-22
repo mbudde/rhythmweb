@@ -1,0 +1,9 @@
+[RB Plugin]
+Loader=python
+Module=rhythmweb
+IAge=1
+Name=Rhythmweb
+Description=A web interface for Rhythmbox
+Authors=Michael Gratton <mike@vee.net>
+Copyright=Copyright © 2007 Michael Gratton
+Website=http://web.vee.net/projects/rhythmweb/
