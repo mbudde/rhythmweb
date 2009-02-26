@@ -1,6 +1,7 @@
 #
 # Rhythmweb - a web site for your Rhythmbox.
 # Copyright (C) 2007 Michael Gratton.
+# Copyright (C) 2009 Michael Budde
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,6 +41,8 @@ try:
 except:
     use_mdns = False
 
+from preferences import RhythmwebPrefs
+
 
 class RhythmwebPlugin(rb.Plugin):
 
@@ -60,8 +63,9 @@ class RhythmwebPlugin(rb.Plugin):
             self.db.connect ('entry-extra-metadata-notify',
                              self._extra_metadata_changed_cb)
             ,)
-        self.port = 8000
-        self.server = RhythmwebServer('', self.port, self)
+        self.prefs = RhythmwebPrefs()
+        self.server = RhythmwebServer('', self.prefs['port'].get(), 
+                                      self)
         self._mdns_publish()
 
     def deactivate(self, shell):
@@ -99,7 +103,9 @@ class RhythmwebPlugin(rb.Plugin):
                                        servicetype,
                                        "",
                                        "",
-                                       dbus.UInt16(self.port),
+                                       dbus.UInt16(
+                                           self.prefs['port'].get()
+                                       ),
                                        ())
             self.entrygroup.Commit()
 
