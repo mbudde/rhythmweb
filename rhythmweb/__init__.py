@@ -165,6 +165,8 @@ class RhythmwebServer(object):
 
     def shutdown(self):
         gobject.source_remove(self._watch_cb_id)
+        self.interface.shutdown()
+        self.interface = None
         self.running = False
         self.plugin = None
 
