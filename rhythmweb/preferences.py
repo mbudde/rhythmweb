@@ -57,14 +57,14 @@ class PreferenceManager(object):
 
     def add_pref(self, key, default):
         path = '%s/%s' % (self.prefs_dir, key)
-        self.prefs[key],(Preference(path, default))
+        self.prefs[key] = Preference(path, default)
 
 
 class RhythmwebPrefs(PreferenceManager):
     plugin_gconf_dir = '/apps/rhythmbox/plugins/rhythmweb'
 
     def __init__(self):
-        super(RhythmwebPrefs, self).__init__(plugin_gconf_dir)
+        super(RhythmwebPrefs, self).__init__(self.plugin_gconf_dir)
 
         self.add_pref('port', 8000)
 
