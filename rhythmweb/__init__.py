@@ -251,9 +251,8 @@ class LoggingWSGIRequestHandler(WSGIRequestHandler):
     def log_message(self, format, *args):
         # RB redirects stdout to its logging system, to these
         # request log messages, run RB with -D rhythmweb
-        sys.stdout.write("%s - - [%s] %s\n" %
+        sys.stdout.write("%s -- %s\n" %
                          (self.address_string(),
-                          self.log_date_time_string(),
                           format%args))
 
 
