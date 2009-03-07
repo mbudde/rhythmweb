@@ -55,8 +55,8 @@ html, body {
 #play,
 #pause,
 #stop,
-#previous-track,
-#next-track {
+#previous,
+#next {
   float: left;
 }
 
