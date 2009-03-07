@@ -263,9 +263,9 @@ def parse_post(environ):
         length = -1
         if 'CONTENT_LENGTH' in environ:
             length = int(environ['CONTENT_LENGTH'])
-        if environ['CONTENT_TYPE'] == 'application/x-www-form-urlencoded':
+        if environ['CONTENT_TYPE'].find('application/x-www-form-urlencoded') != -1:
             return cgi.parse_qs(environ['wsgi.input'].read(length))
-        if environ['CONTENT_TYPE'] == 'multipart/form-data':
+        if environ['CONTENT_TYPE'].find('multipart/form-data') != -1:
             return cgi.parse_multipart(environ['wsgi.input'].read(length))
     return None
 
