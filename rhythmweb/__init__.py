@@ -54,16 +54,6 @@ class RhythmwebPlugin(rb.Plugin):
         self.db = shell.props.db
         self.shell = shell
         self.player = shell.get_player()
-        self.shell_cb_ids = (
-            self.player.connect ('playing-song-changed',
-                                 self._playing_entry_changed_cb),
-            self.player.connect ('playing-changed',
-                                 self._playing_changed_cb)
-            )
-        self.db_cb_ids = (
-            self.db.connect ('entry-extra-metadata-notify',
-                             self._extra_metadata_changed_cb)
-            ,)
         self.prefs = RhythmwebPrefs()
         self.server = RhythmwebServer('', self.prefs['port'].get(), 
                                       self)
@@ -74,12 +64,6 @@ class RhythmwebPlugin(rb.Plugin):
         self.server.shutdown()
         self.server = None
 
-        for id in self.shell_cb_ids:
-            self.player.disconnect(id)
-
-        for id in self.db_cb_ids:
-            self.db.disconnect(id)
-
         self.player = None
         self.shell = None
         self.db = None
@@ -87,27 +71,31 @@ class RhythmwebPlugin(rb.Plugin):
     def _mdns_publish(self):
         if use_mdns:
             bus = dbus.SystemBus()
-            avahi_bus = bus.get_object(avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER)
-            avahi_svr = dbus.Interface(avahi_bus, avahi.DBUS_INTERFACE_SERVER)
+            avahi_bus = bus.get_object(avahi.DBUS_NAME,
+                                       avahi.DBUS_PATH_SERVER)
+            avahi_svr = dbus.Interface(avahi_bus,
+                                       avahi.DBUS_INTERFACE_SERVER)
 
             servicetype = '_http._tcp'
             servicename = 'Rhythmweb on %s' % (socket.gethostname())
 
             eg_path = avahi_svr.EntryGroupNew()
             eg_obj = bus.get_object(avahi.DBUS_NAME, eg_path)
-            self.entrygroup = dbus.Interface(eg_obj,
-                                             avahi.DBUS_INTERFACE_ENTRY_GROUP)
-            self.entrygroup.AddService(avahi.IF_UNSPEC,
-                                       avahi.PROTO_UNSPEC,
-                                       0,
-                                       servicename,
-                                       servicetype,
-                                       "",
-                                       "",
-                                       dbus.UInt16(
-                                           self.prefs['port'].get()
-                                       ),
-                                       ())
+            self.entrygroup = dbus.Interface(
+                    eg_obj,
+                    avahi.DBUS_INTERFACE_ENTRY_GROUP
+            )
+            self.entrygroup.AddService(
+                    avahi.IF_UNSPEC,
+                    avahi.PROTO_UNSPEC,
+                    0,
+                    servicename,
+                    servicetype,
+                    "",
+                    "",
+                    dbus.UInt16(self.prefs['port'].get()),
+                    ()
+            )
             self.entrygroup.Commit()
 
     def _mdns_withdraw(self):
@@ -116,48 +104,14 @@ class RhythmwebPlugin(rb.Plugin):
             self.entrygroup.Free()
             self.entrygroup = None
 
-    def _playing_changed_cb(self, player, playing):
-        self._update_entry(player.get_playing_entry())
-
-    def _playing_entry_changed_cb(self, player, entry):
-        self._update_entry(entry)
-
-    def _extra_metadata_changed_cb(self, db, entry, field, metadata):
-        if entry == self.player.get_playing_entry():
-            self._update_entry(entry)
-
-    def _update_entry(self, entry):
-        if entry:
-            artist = self.db.entry_get(entry, rhythmdb.PROP_ARTIST)
-            album = self.db.entry_get(entry, rhythmdb.PROP_ALBUM)
-            title = self.db.entry_get(entry, rhythmdb.PROP_TITLE)
-            stream = None
-            stream_title = \
-                self.db.entry_request_extra_metadata(entry,
-                                                     'rb:stream-song-title')
-            if stream_title:
-                stream = title
-                title = stream_title
-                if not artist:
-                    artist = self.db.\
-                        entry_request_extra_metadata(entry,
-                                                     'rb:stream-song-artist')
-                if not album:
-                    album = self.db.\
-                            entry_request_extra_metadata(entry,
-                                                         'rb:stream-song-album')
-            self.server.set_playing(artist, album, title, stream)
-        else:
-            self.server.set_playing(None, None, None, None)
-
 
 class RhythmwebServer(object):
 
     def __init__(self, hostname, port, plugin):
         self.plugin = plugin
         self.running = True
-        self._httpd = make_server(hostname, port, self._wsgi,
-                                  handler_class=LoggingWSGIRequestHandler)
+        self._httpd = make_server(hostname, port, self._wsgi,         
+                            handler_class=LoggingWSGIRequestHandler)
         self._watch_cb_id = gobject.io_add_watch(self._httpd.socket,
                                                  gobject.IO_IN,
                                                  self._idle_cb)

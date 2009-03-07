@@ -23,16 +23,32 @@ class RhythmwebInterface(object):
     def __init__(self, plugin):
         self.plugin = plugin
         self.player = plugin.player
+        self.db = plugin.db
         #self.shell = plugin.shell
-        #self.db = plugin.db
         #self.queue = self.shell.props.queue_source
         #self.playlist_rows = self.queue.props.query_model
+        self.shell_cb_ids = (
+            self.player.connect('playing-song-changed',
+                                self._playing_entry_changed_cb),
+            self.player.connect('playing-changed',
+                                self._playing_changed_cb)
+        )
+        self.db_cb_ids = (
+            self.db.connect('entry-extra-metadata-notify',
+                            self._extra_metadata_changed_cb)
+        )
 
     def shutdown(self):
+        for id in self.shell_cb_ids:
+            self.player.disconnect(id)
+
+        for id in self.db_cb_ids:
+            self.db.disconnect(id)
+
         del self.plugin
         del self.player
+        del self.db
         #del self.shell
-        #del self.db
         #del self.queue
 
     def html(self, start_response):
@@ -138,6 +154,41 @@ class RhythmwebInterface(object):
                                       #'play': play,
                                       #'playing': playing,
                                       #'playlist': playlist }
+
+    def _playing_changed_cb(self, player, playing):
+        self._update_entry(player.get_playing_entry())
+
+    def _playing_entry_changed_cb(self, player, entry):
+        self._update_entry(entry)
+
+    def _extra_metadata_changed_cb(self, db, entry, field, metadata):
+        if entry == self.player.get_playing_entry():
+            self._update_entry(entry)
+
+    def _update_entry(self, entry):
+        if entry:
+            artist = self.db.entry_get(entry, rhythmdb.PROP_ARTIST)
+            album = self.db.entry_get(entry, rhythmdb.PROP_ALBUM)
+            title = self.db.entry_get(entry, rhythmdb.PROP_TITLE)
+            stream = None
+            stream_title = \
+                self.db.entry_request_extra_metadata(entry,
+                                                     'rb:stream-song-title')
+            if stream_title:
+                stream = title
+                title = stream_title
+                if not artist:
+                    artist = self.db.\
+                        entry_request_extra_metadata(entry,
+                                                     'rb:stream-song-artist')
+                if not album:
+                    album = self.db.\
+                            entry_request_extra_metadata(entry,
+                                                         'rb:stream-song-album')
+            #self.server.set_playing(artist, album, title, stream)
+        else:
+            pass
+            #self.server.set_playing(None, None, None, None)
 
     def play_pause(self):
         if not self.player.get_playing():
