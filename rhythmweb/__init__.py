@@ -145,8 +145,16 @@ class RhythmwebServer(object):
         return self.interface.html(start_response)
 
     def _handle_control(self, environ, start_response):
-        start_response('200 OK', [('Content-type', 'text/plain')])
-        return 'Hej'
+        if environ['REQUEST_METHOD'] == 'POST':
+            params = parse_post(environ)
+            if 'action' in params:
+                action = params['action'][0]
+                return self.interface.handle_action(action,
+                                                    start_response)
+
+        response_headers = [('Content-type', 'text/plain')]
+        start_response('400 Bad Request', response_headers)
+        return 'No action specified'
 
     def _handle_stock(self, environ, start_response):
         path = environ['PATH_INFO']

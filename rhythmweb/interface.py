@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
+from xml.dom.minidom import getDOMImplementation
 
 class RhythmwebInterface(object):
 
@@ -52,17 +53,19 @@ class RhythmwebInterface(object):
         #del self.queue
 
     def html(self, start_response):
-        response_headers = [('Content-type', 'text/html; charset=UTF-8')]
-        start_response('200 OK', response_headers)
+        headers = [('Content-type', 'text/html; charset=UTF-8')]
+        start_response('200 OK', headers)
         player_html = open(self.plugin.find_file('player.html'))
         return player_html.read()
 
+    def handle_action(self, action, start_response):
+        headers = [('Content-type', 'text/xml')]
+        start_response('200 OK', headers)
+        info = {
+        }
+        return dict2xml(info)
+
         # From __init__.RhythmwebServer
-        #player = self.plugin.player
-        #shell = self.plugin.shell
-        #db = self.plugin.db
-        #queue = shell.props.queue_source
-        #playlist_rows = queue.props.query_model
 
         ## handle any action
         #if environ['REQUEST_METHOD'] == 'POST':
@@ -82,15 +85,10 @@ class RhythmwebInterface(object):
                 #elif action == 'pause':
                     #player.pause()
                 #elif action == 'next':
-                    #player.do_next()
                 #elif action == 'prev':
-                    #player.do_previous()
                 #elif action == 'stop':
-                    #player.stop()
                 #elif action == 'vol-up':
-                    #player.set_volume(player.get_volume() + 0.1)
                 #elif action == 'vol-down':
-                    #player.set_volume(player.get_volume() - 0.1)
 
             #return return_redirect('/', environ, response)
 
@@ -203,13 +201,38 @@ class RhythmwebInterface(object):
             self.player.pause()
 
     def play_next(self):
+        #player.do_next()
         pass
 
     def play_prev(self):
+        #player.do_previous()
         pass
 
     def volume_up(self):
+        #player.set_volume(player.get_volume() + 0.1)
         pass
 
     def volume_down(self):
+        #player.set_volume(player.get_volume() - 0.1)
         pass
+
+
+def dict2xml(d):
+    dom = getDOMImplementation().createDocument(None, 'info', None)
+    root = dom.documentElement
+
+    def dict2dom(root, d):
+        for key, val in d.iteritems():
+            elem = dom.createElement(key)
+            if type(val) == dict:
+                dict2elem(elem, val)
+            else:
+                elem.appendChild(dom.createTextNode(str(val)))
+            root.appendChild(elem)
+
+    dict2dom(root, d)
+    xml = dom.toxml()
+    dom.unlink()
+    return xml
+        
+
