@@ -75,6 +75,10 @@ class RhythmwebInterface(object):
                 info['state'] = 'playing'
             else:
                 info['state'] = 'paused'
+        else:
+            info['state'] = 'stopped'
+
+        if playing and (action in ['next', 'prev', 'play', 'info']):
             info['artist'] = self.db.entry_get(playing, rhythmdb.PROP_ARTIST)
             info['album'] = self.db.entry_get(playing, rhythmdb.PROP_ALBUM)
             info['title'] = self.db.entry_get(playing, rhythmdb.PROP_TITLE)
@@ -96,14 +100,18 @@ class RhythmwebInterface(object):
                             playing, 'rb:stream-song-album'
                         )
             info['duration'] = self.player.get_playing_song_duration()
-            played = self.player.get_playing_time()
+            # FIXME: This is weird. get_playing_time() seems to return
+            # the playing time of the previous song even though
+            # everything else has been updated.
+            if action in ['next', 'prev']:
+                played = 0
+            else:
+                played = self.player.get_playing_time()
             finish_time = datetime.utcnow() + \
                     timedelta(seconds=info['duration']-played)
             info['finish_time'] = finish_time.ctime()
-        else:
-            info['state'] = 'stopped'
 
-        if action in ['vol-up', 'vol-down']:
+        if action in ['vol-up', 'vol-down', 'info']:
             info['volume'] = self.player.get_volume()
 
         return info

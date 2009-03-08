@@ -29,36 +29,45 @@ function secs2str(s) {
 }
 
 function update_playing_time() {
-    if (info["played"] <= info["duration"])
-        $("#playingtime").html(
-            secs2str(info["played"]) + " of " +
-            secs2str(info["duration"])
-        );
-    if (info["state"] == "playing")
-        info["played"] += 1;
+    if (info["state"] == "stopped")
+        $("#playingtime").html("")
+    else {
+        if (info["played"] <= info["duration"])
+            $("#playingtime").html(
+                secs2str(info["played"]) + " of " +
+                secs2str(info["duration"])
+            );
+        if (info["state"] == "playing") 
+            info["played"] += 1;
+    }
 }
     
 function update_info(data) {
-    if (title = getelem("title", data))
-        $("#title > cite").html(title.text());
-    if (artist = getelem("artist", data))
-        $("#artist > cite").html(artist.text()).parent().show()
-    else
-        $("#artist").hide();
-    if (album = getelem("album", data))
-        $("#album > cite").html(album.text()).parent().show()
-    else
-        $("#album").hide();
-    if (stream = getelem("stream", data))
-        $("#stream > cite").html("("+stream.text()+")").parent().show()
-    else
-        $("#stream").hide();
     if (state = getelem("state", data)) {
         info["state"] = state.text();
         if (state.text() == "playing")
             $("#toolbar #play").addClass("active");
         if (state.text() == "paused" || state.text() == "stopped")
             $("#toolbar #play").removeClass("active");
+    }
+    if (info["state"] != "stopped") {
+        if (title = getelem("title", data))
+            $("#title > cite").html(title.text());
+        if (artist = getelem("artist", data))
+            $("#artist > cite").html(artist.text()).parent().show()
+        else
+            $("#artist").hide();
+        if (album = getelem("album", data))
+            $("#album > cite").html(album.text()).parent().show()
+        else
+            $("#album").hide();
+        if (stream = getelem("stream", data))
+            $("#stream > cite").html("("+stream.text()+")").parent().show()
+        else
+            $("#stream").hide();
+    } else {
+        $("#playing cite").html("").parent().hide();
+        $("#title cite").html("Not Playing").parent().show();
     }
     if (duration = getelem("duration", data))
         info["duration"] = parseInt(duration.text());
