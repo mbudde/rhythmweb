@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
+from datetime import datetime, timedelta
 from xml.dom.minidom import getDOMImplementation
 
 import rhythmdb
@@ -84,6 +85,11 @@ class RhythmwebInterface(object):
                         self.db.entry_request_extra_metadata(
                             playing, 'rb:stream-song-album'
                         )
+            info['duration'] = self.player.get_playing_song_duration()
+            played = self.player.get_playing_time()
+            finish_time = datetime.utcnow() + \
+                    timedelta(seconds=info['duration']-played)
+            info['finish_time'] = finish_time.ctime()
         else:
             info['state'] = 'stopped'
 

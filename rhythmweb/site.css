@@ -62,11 +62,25 @@ html, body {
 
 #playing {
   margin: 8px 2px;
+  overflow: auto;
+  text-align: right;
 }
 
 #not-playing,
 #title {
   font-size: 1.4em;
+}
+
+#artist cite,
+#album cite {
+  font-style: italic;
+}
+
+#playing .left {
+  float: left;
+}
+
+#playingtime {
 }
 
 #playlist {
