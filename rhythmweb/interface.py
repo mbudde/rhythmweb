@@ -28,24 +28,8 @@ class RhythmwebInterface(object):
         #self.shell = plugin.shell
         #self.queue = self.shell.props.queue_source
         #self.playlist_rows = self.queue.props.query_model
-        self.shell_cb_ids = (
-            self.player.connect('playing-song-changed',
-                                self._playing_entry_changed_cb),
-            self.player.connect('playing-changed',
-                                self._playing_changed_cb)
-        )
-        self.db_cb_ids = (
-            self.db.connect('entry-extra-metadata-notify',
-                            self._extra_metadata_changed_cb)
-        )
 
     def shutdown(self):
-        for id in self.shell_cb_ids:
-            self.player.disconnect(id)
-
-        for id in self.db_cb_ids:
-            self.db.disconnect(id)
-
         del self.plugin
         del self.player
         del self.db
