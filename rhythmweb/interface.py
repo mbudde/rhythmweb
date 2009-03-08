@@ -23,6 +23,8 @@ from xml.dom.minidom import getDOMImplementation
 import rhythmdb
 
 class RhythmwebInterface(object):
+    """Take care of sending html and xml to the client and handle
+    the Ajax requests the client sends."""
 
     def __init__(self, plugin):
         self.plugin = plugin
@@ -35,12 +37,18 @@ class RhythmwebInterface(object):
         del self.db
 
     def send(self, start_response):
+        """Send player html to the client. No info is sent in the html --
+        the client must send a Ajax request to get info about playing
+        song ect."""
         headers = [('Content-type', 'text/html; charset=UTF-8')]
         start_response('200 OK', headers)
         player_html = open(self.plugin.find_file('player.html'))
         return player_html.read()
 
     def handle_action(self, action, start_response):
+        """Handle an Ajax request forwarded to us from the server.
+        Depending on the action we might respond with some info in
+        xml format."""
         if action == 'play':
             self.play_pause()
         elif action == 'next':
@@ -55,9 +63,11 @@ class RhythmwebInterface(object):
         headers = [('Content-type', 'text/xml; charset=UTF-8')]
         start_response('200 OK', headers)
         info = self.player_info(action)
-        return dict2xml(info)
+        return dict2xml(info, 'info')
 
     def player_info(self, action=None):
+        """Gather info about the playing song and the state of
+        the player. The gathered info depends on the action."""
         info = {}
         playing = self.player.get_playing_entry()
         if playing:
@@ -114,8 +124,10 @@ class RhythmwebInterface(object):
         self.player.set_volume_relative(-0.1)
 
 
-def dict2xml(d):
-    dom = getDOMImplementation().createDocument(None, 'info', None)
+def dict2xml(d, rootname):
+    """Return a DOM representation of a dictionary with the root
+    element named accordingly to rootname."""
+    dom = getDOMImplementation().createDocument(None, rootname, None)
     root = dom.documentElement
 
     def dict2dom(root, d):
