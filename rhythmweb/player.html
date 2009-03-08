@@ -25,34 +25,17 @@
 
 <html>
 <head>
-<title>%(title)s</title>
+<title>Rhythmweb</title>
 <link rel="stylesheet" href="site.css" type="text/css"></head>
 <script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript">
-    $(function() {
-        function update_info(data) {
-            if (data.playing)
-                $("#playing").html(data.playing);
-        }
-
-        $("#toolbar button").click(function(e) {
-            $.post(
-                "control",
-                {action: $(this).attr("value")},
-                update_info,
-                "xml"
-            );
-        });
-    });
-</script>
-%(refresh)s
+<script type="text/javascript" src="player.js"></script>
 <body>
 
 <div id="player">
 <h1 id="window-title">Rhythmweb</h1>
 
 <p id="toolbar">
-<button id="play" %(play)s name="action" title="Start playback" value="play">
+<button id="play" name="action" title="Start playback" value="play">
     <img alt="Play" width="24" height="24" src="stock/gtk-media-play-ltr"/> Play
 </button>
 <!--button id="pause" name="action" title="Pause playback" value="pause"><img alt="Pause" width="24" height="24" src="stock/gtk-media-pause"/></button>
@@ -71,7 +54,12 @@
 </button>
 </p>
 
-<p id="playing">%(playing)s</p>
+<p id="playing">
+    <span id="title"><cite></cite></span>
+    <span id="artist">by <cite></cite></span>
+    <span id="album">from <cite></cite></span>
+    <span id="stream"><cite></cite></span>
+</p>
 
 <table id="playlist">
 <thead>
@@ -82,7 +70,6 @@
   </tr>
 </thead>
 <tbody>
-%(playlist)s
 </tbody>
 </table>
 

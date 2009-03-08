@@ -19,35 +19,113 @@
 
 from xml.dom.minidom import getDOMImplementation
 
+import rhythmdb
+
 class RhythmwebInterface(object):
 
     def __init__(self, plugin):
         self.plugin = plugin
         self.player = plugin.player
         self.db = plugin.db
-        #self.shell = plugin.shell
-        #self.queue = self.shell.props.queue_source
-        #self.playlist_rows = self.queue.props.query_model
 
     def shutdown(self):
         del self.plugin
         del self.player
         del self.db
-        #del self.shell
-        #del self.queue
 
-    def html(self, start_response):
+    def send(self, start_response):
         headers = [('Content-type', 'text/html; charset=UTF-8')]
         start_response('200 OK', headers)
         player_html = open(self.plugin.find_file('player.html'))
         return player_html.read()
 
     def handle_action(self, action, start_response):
-        headers = [('Content-type', 'text/xml')]
+        if action == 'play':
+            self.play_pause()
+        elif action == 'next':
+            self.play_next()
+        elif action == 'prev':
+            self.play_prev()
+        elif action == 'vol-up':
+            self.volume_up()
+        elif action == 'vol-down':
+            self.volume_down()
+
+        headers = [('Content-type', 'text/xml; charset=UTF-8')]
         start_response('200 OK', headers)
-        info = {
-        }
+        info = self.player_info(action)
         return dict2xml(info)
+
+    def player_info(self, action=None):
+        info = {}
+        playing = self.player.get_playing_entry()
+        if playing:
+            if self.player.get_playing():
+                info['state'] = 'playing'
+            else:
+                info['state'] = 'paused'
+            info['artist'] = self.db.entry_get(playing, rhythmdb.PROP_ARTIST)
+            info['album'] = self.db.entry_get(playing, rhythmdb.PROP_ALBUM)
+            info['title'] = self.db.entry_get(playing, rhythmdb.PROP_TITLE)
+            stream_title = \
+                self.db.entry_request_extra_metadata(
+                        playing, 'rb:stream-song-title'
+                )
+            if stream_title:
+                info['stream'] = info['title']
+                info['title'] = stream_title
+                if not info['artist']:
+                    info['artist'] = \
+                        self.db.entry_request_extra_metadata(
+                            playing, 'rb:stream-song-artist'
+                        )
+                if not info['album']:
+                    info['album'] = \
+                        self.db.entry_request_extra_metadata(
+                            playing, 'rb:stream-song-album'
+                        )
+        else:
+            info['state'] = 'stopped'
+
+        if action in ['vol-up', 'vol-down']:
+            info['volume'] = self.player.get_volume()
+
+        return info
+
+    def play_pause(self):
+        self.player.playpause()
+
+    def play_next(self):
+        self.player.do_next()
+
+    def play_prev(self):
+        self.player.do_previous()
+
+    def volume_up(self):
+        self.player.set_volume_relative(0.1)
+
+    def volume_down(self):
+        self.player.set_volume_relative(-0.1)
+
+
+def dict2xml(d):
+    dom = getDOMImplementation().createDocument(None, 'info', None)
+    root = dom.documentElement
+
+    def dict2dom(root, d):
+        for key, val in d.iteritems():
+            elem = dom.createElement(key)
+            if type(val) == dict:
+                dict2elem(elem, val)
+            elif val != None:
+                elem.appendChild(dom.createTextNode(str(val)))
+            root.appendChild(elem)
+
+    dict2dom(root, d)
+    xml = dom.toxml()
+    dom.unlink()
+    return xml
+        
 
         # From __init__.RhythmwebServer
 
@@ -136,87 +214,3 @@ class RhythmwebInterface(object):
                                       #'play': play,
                                       #'playing': playing,
                                       #'playlist': playlist }
-
-    def _playing_changed_cb(self, player, playing):
-        self._update_entry(player.get_playing_entry())
-
-    def _playing_entry_changed_cb(self, player, entry):
-        self._update_entry(entry)
-
-    def _extra_metadata_changed_cb(self, db, entry, field, metadata):
-        if entry == self.player.get_playing_entry():
-            self._update_entry(entry)
-
-    def _update_entry(self, entry):
-        if entry:
-            artist = self.db.entry_get(entry, rhythmdb.PROP_ARTIST)
-            album = self.db.entry_get(entry, rhythmdb.PROP_ALBUM)
-            title = self.db.entry_get(entry, rhythmdb.PROP_TITLE)
-            stream = None
-            stream_title = \
-                self.db.entry_request_extra_metadata(entry,
-                                                     'rb:stream-song-title')
-            if stream_title:
-                stream = title
-                title = stream_title
-                if not artist:
-                    artist = self.db.\
-                        entry_request_extra_metadata(entry,
-                                                     'rb:stream-song-artist')
-                if not album:
-                    album = self.db.\
-                            entry_request_extra_metadata(entry,
-                                                         'rb:stream-song-album')
-            #self.server.set_playing(artist, album, title, stream)
-        else:
-            pass
-            #self.server.set_playing(None, None, None, None)
-
-    def play_pause(self):
-        if not self.player.get_playing():
-            if not self.player.get_playing_source():
-                if self.playlist_rows.get_size() > 0:
-                    self.player.play_entry(
-                        iter(self.playlist_rows).next()[0],
-                        queue)
-            else:
-                self.player.play()
-        else:
-            self.player.pause()
-
-    def play_next(self):
-        #player.do_next()
-        pass
-
-    def play_prev(self):
-        #player.do_previous()
-        pass
-
-    def volume_up(self):
-        #player.set_volume(player.get_volume() + 0.1)
-        pass
-
-    def volume_down(self):
-        #player.set_volume(player.get_volume() - 0.1)
-        pass
-
-
-def dict2xml(d):
-    dom = getDOMImplementation().createDocument(None, 'info', None)
-    root = dom.documentElement
-
-    def dict2dom(root, d):
-        for key, val in d.iteritems():
-            elem = dom.createElement(key)
-            if type(val) == dict:
-                dict2elem(elem, val)
-            else:
-                elem.appendChild(dom.createTextNode(str(val)))
-            root.appendChild(elem)
-
-    dict2dom(root, d)
-    xml = dom.toxml()
-    dom.unlink()
-    return xml
-        
-

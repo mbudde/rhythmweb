@@ -142,7 +142,7 @@ class RhythmwebServer(object):
             return self._handle_static(environ, start_response)
 
     def _handle_interface(self, environ, start_response):
-        return self.interface.html(start_response)
+        return self.interface.send(start_response)
 
     def _handle_control(self, environ, start_response):
         if environ['REQUEST_METHOD'] == 'POST':
