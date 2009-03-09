@@ -55,18 +55,18 @@ class RhythmwebPlugin(rb.Plugin):
         self.shell = shell
         self.player = shell.get_player()
         self.prefs = RhythmwebPrefs()
-        self.server = RhythmwebServer('', self.prefs['port'].get(), 
-                                      self)
+        self.server = RhythmwebServer('', self.prefs['port'].get(), self)
         self._mdns_publish()
 
     def deactivate(self, shell):
         self._mdns_withdraw()
         self.server.shutdown()
-        self.server = None
-
-        self.player = None
-        self.shell = None
-        self.db = None
+        self.prefs.shutdown()
+        del self.server
+        del self.prefs
+        del self.player
+        del self.shell
+        del self.db
 
     def _mdns_publish(self):
         if use_mdns:
@@ -111,7 +111,7 @@ class RhythmwebServer(object):
         self.plugin = plugin
         self.running = True
         self._httpd = make_server(hostname, port, self._wsgi,         
-                            handler_class=LoggingWSGIRequestHandler)
+                                  handler_class=LoggingWSGIRequestHandler)
         self._watch_cb_id = gobject.io_add_watch(self._httpd.socket,
                                                  gobject.IO_IN,
                                                  self._idle_cb)
@@ -120,9 +120,9 @@ class RhythmwebServer(object):
     def shutdown(self):
         gobject.source_remove(self._watch_cb_id)
         self.interface.shutdown()
-        self.interface = None
         self.running = False
-        self.plugin = None
+        del self.interface
+        del self.plugin
 
     def _idle_cb(self, source, cb_condition):
         if not self.running:
@@ -151,7 +151,6 @@ class RhythmwebServer(object):
                 action = params['action'][0]
                 return self.interface.handle_action(action,
                                                     start_response)
-
         response_headers = [('Content-type', 'text/plain')]
         start_response('400 Bad Request', response_headers)
         return 'No action specified'
@@ -173,7 +172,8 @@ class RhythmwebServer(object):
             filename = iconinfo.get_filename()
             icon = open(filename)
             lastmod = time.gmtime(os.path.getmtime(filename))
-            lastmod = time.strftime("%a, %d %b %Y %H:%M:%S +0000", lastmod)
+            lastmod = time.strftime("%a, %d %b %Y %H:%M:%S +0000",
+                                    lastmod)
             response_headers = [('Content-type','image/png'),
                                 ('Last-Modified', lastmod)]
             start_response('200 OK', response_headers)
@@ -199,7 +199,8 @@ class RhythmwebServer(object):
 
         if os.path.isfile(path):
             lastmod = time.gmtime(os.path.getmtime(path))
-            lastmod = time.strftime("%a, %d %b %Y %H:%M:%S +0000", lastmod)
+            lastmod = time.strftime("%a, %d %b %Y %H:%M:%S +0000",
+                                    lastmod)
             response_headers = [('Content-type','text/css'),
                                 ('Last-Modified', lastmod)]
             start_response('200 OK', response_headers)
