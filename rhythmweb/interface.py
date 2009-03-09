@@ -19,6 +19,7 @@
 
 from datetime import datetime, timedelta
 from xml.dom.minidom import getDOMImplementation
+from socket import gethostname
 
 import rhythmdb
 
@@ -37,13 +38,12 @@ class RhythmwebInterface(object):
         del self.db
 
     def send(self, start_response):
-        """Send player html to the client. No info is sent in the html --
-        the client must send a Ajax request to get info about playing
-        song ect."""
+        """Send player html to the client. The client must send a
+        Ajax request to get info about playing song ect."""
         headers = [('Content-type', 'text/html; charset=UTF-8')]
         start_response('200 OK', headers)
         player_html = open(self.plugin.find_file('player.html'))
-        return player_html.read()
+        return player_html.read() % {'hostname': gethostname()}
 
     def handle_action(self, action, start_response):
         """Handle an Ajax request forwarded to us from the server.
