@@ -12,16 +12,16 @@ info["state"] = null;
 info["timeout_id"] = null;
 
 function getelem(expr, context) {
-    elem = $(expr, context);
+    var elem = $(expr, context);
     if (elem.length == 0) elem = null;
     return elem;
 }
 
 function secs2str(s) {
-    hours = Math.floor(s/60/60);
-    mins = Math.floor(s/60-hours*60);
-    secs = Math.floor(s-hours*60-mins*60);
-    secs = (secs < 10) ? "0"+secs : secs;
+    var hours = Math.floor(s/60/60);
+    var mins = Math.floor(s/60-hours*60);
+    var secs = Math.floor(s-hours*60-mins*60);
+    var secs = (secs < 10) ? "0"+secs : secs;
     if (hours > 0)
         return [hours, mins, secs].join(":")
     else
@@ -72,9 +72,9 @@ function update_info(data) {
     if (duration = getelem("duration", data))
         info["duration"] = parseInt(duration.text());
     if (finish_time = getelem("finish_time", data)) {
-        finish = new Date(Date.parse(finish_time.text()+" UTC"));
-        now = new Date();
-        remaining = Math.floor((finish - now)/1000);
+        var finish = new Date(Date.parse(finish_time.text()+" UTC"));
+        var now = new Date();
+        var remaining = Math.floor((finish - now)/1000);
         info["played"] = info["duration"] - remaining;
         if (info["timeout_id"])
             clearTimeout(info["timeout_id"]);
