@@ -23,7 +23,7 @@ function secs2str(s) {
     var secs = Math.floor(s-hours*60-mins*60);
     var secs = (secs < 10) ? "0"+secs : secs;
     if (hours > 0)
-        return [hours, mins, secs].join(":")
+        return [hours, mins, secs].join(":");
     else
         return [mins, secs].join(":");
 }
@@ -36,13 +36,18 @@ function control(act, callback) {
 
 function update_playing_time() {
     if (info["state"] == "stopped")
-        $("#playingtime").html("")
+        $("#playingtime").html("");
     else {
-        if (info["played"] <= info["duration"])
-            $("#playingtime").html(
-                secs2str(info["played"]) + " of " +
-                secs2str(info["duration"])
-            );
+        if (info["duration"] != 0) {
+            if (info["played"] <= info["duration"])
+                $("#playingtime").html(
+                    secs2str(info["played"]) + " of " +
+                    secs2str(info["duration"])
+                );
+        }
+        else {
+            $("#playingtime").html(secs2str(info["played"]));
+        }
         if (info["state"] == "playing") 
             info["played"] += 1;
     }
@@ -57,37 +62,58 @@ function update_info(data) {
             $("#toolbar #play").removeClass("active");
     }
     if (info["state"] != "stopped") {
-        if (title = getelem("title", data))
-            $("#title > cite").html(title.text());
-        if (artist = getelem("artist", data))
-            $("#artist > cite").html(artist.text()).parent().show()
-        else
-            $("#artist").hide();
-        if (album = getelem("album", data))
-            $("#album > cite").html(album.text()).parent().show()
-        else
-            $("#album").hide();
-        if (stream = getelem("stream", data))
-            $("#stream > cite").html("("+stream.text()+")").parent().show()
-        else
-            $("#stream").hide();
-    } else {
+        var tags = ["title", "artist", "album", "stream"];
+        for (var i in tags) {
+            var elem = getelem(tags[i], data);
+            if (elem) {
+                if (elem.text() != "")
+                    $("#"+tags[i]+" > cite").html(elem.text()).parent().show();
+                else
+                    $("#"+tags[i]).hide();
+            }
+        }
+        var duration = getelem("duration", data);
+        if (duration) {
+            if (info["timeout_id"])
+                clearTimeout(info["timeout_id"]);
+            info["duration"] = parseInt(duration.text());
+            if (info["duration"] != 0) {
+                /* We are playing a song so update info when the song ends */
+                var finish_time = getelem("finish_time", data);
+                var finish = new Date(Date.parse(finish_time.text()+" UTC"));
+                var now = new Date();
+                var remaining = Math.floor((finish - now)/1000);
+                info["played"] = info["duration"] - remaining;
+                if (info["state"] == "playing")
+                    info["timeout_id"] = setTimeout(function() {
+                        control("info");
+                    }, remaining*1000);
+            }
+            else {
+                /* Ok, we are probably playing a stream; update
+                 * every one minute. */
+                var played = getelem("played", data);
+                var played_time = getelem("played_time", data);
+                if (played && played_time) {
+                    played = parseInt(played.text());
+                    played_time = new Date(Date.parse(played_time.text()+" UTC"));
+                    var now = new Date();
+                    var corr_time = Math.floor((now - played_time)/1000);
+                    played += corr_time;
+                }
+                else {
+                    played = 0;
+                }
+                info["played"] = played;
+                info["timeout_id"] = setTimeout(function() {
+                    control("info");
+                }, 60000);
+            }
+        }
+    }
+    else {
         $("#playing cite").html("").parent().hide();
         $("#title cite").html("Not Playing").parent().show();
-    }
-    if (duration = getelem("duration", data))
-        info["duration"] = parseInt(duration.text());
-    if (finish_time = getelem("finish_time", data)) {
-        var finish = new Date(Date.parse(finish_time.text()+" UTC"));
-        var now = new Date();
-        var remaining = Math.floor((finish - now)/1000);
-        info["played"] = info["duration"] - remaining;
-        if (info["timeout_id"])
-            clearTimeout(info["timeout_id"]);
-        if (info["state"] == "playing")
-            info["timeout_id"] = setTimeout(function() {
-                control("info");
-            }, remaining*1000);
     }
 }
 

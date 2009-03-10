@@ -107,9 +107,13 @@ class RhythmwebInterface(object):
                 played = 0
             else:
                 played = self.player.get_playing_time()
-            finish_time = datetime.utcnow() + \
-                    timedelta(seconds=info['duration']-played)
-            info['finish_time'] = finish_time.ctime()
+            if info['duration'] == 0:
+                info['played'] = played
+                info['played_time'] = datetime.utcnow().ctime()
+            else:
+                finish_time = datetime.utcnow() + \
+                        timedelta(seconds=info['duration']-played)
+                info['finish_time'] = finish_time.ctime()
 
         if action in ['vol-up', 'vol-down', 'info']:
             info['volume'] = self.player.get_volume()
