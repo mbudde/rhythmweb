@@ -1,9 +1,9 @@
 /*
- Rhythmweb - a web site for your Rhythmbox.
- Copyright (C) 2009 Michael Budde
-
- See COPYING for license information.
-*/
+ * Rhythmweb - a web site for your Rhythmbox.
+ * Copyright (C) 2009 Michael Budde
+ *
+ * See COPYING for license information.
+ */
 
 info = {};
 info["played"] = null;
@@ -13,8 +13,7 @@ info["timeout_id"] = null;
 
 function getelem(expr, context) {
     var elem = $(expr, context);
-    if (elem.length == 0) elem = null;
-    return elem;
+    return (elem.length == 0) ? null : elem;
 }
 
 function secs2str(s) {
@@ -38,14 +37,14 @@ function update_playing_time() {
     if (info["state"] == "stopped")
         $("#playingtime").html("");
     else {
-        if (info["duration"] != 0) {
+        if (info["duration"] != 0) { /* Playing a song */
             if (info["played"] <= info["duration"])
                 $("#playingtime").html(
                     secs2str(info["played"]) + " of " +
                     secs2str(info["duration"])
                 );
         }
-        else {
+        else { /* Playing a stream */
             $("#playingtime").html(secs2str(info["played"]));
         }
         if (info["state"] == "playing") 
@@ -90,8 +89,7 @@ function update_info(data) {
                     }, remaining*1000);
             }
             else {
-                /* Ok, we are probably playing a stream; update
-                 * every one minute. */
+                /* We are playing a stream; update info again in one minute. */
                 var played = getelem("played", data);
                 var played_time = getelem("played_time", data);
                 if (played && played_time) {
@@ -111,7 +109,7 @@ function update_info(data) {
             }
         }
     }
-    else {
+    else { /* Player is stopped. */
         $("#playing cite").html("").parent().hide();
         $("#title cite").html("Not Playing").parent().show();
     }
@@ -121,12 +119,10 @@ $(function() {
     $("#artist, #album, #stream").hide();
     control("info");
 
-    $("#toolbar button").click(function(e) {
+    $("#toolbar button").click(function() {
         control($(this).attr("value"));
     });
-    $("#refresh").click(function(e) {
-        control("info");
-    });
+    $("#refresh").click(function() {control("info");});
 
     setInterval(update_playing_time, 1000);
 });
