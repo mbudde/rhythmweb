@@ -97,6 +97,19 @@ html, body {
   font-size: 0.8em;
 }
 
+#refresh {
+  padding-bottom: 10px;
+}
+
+#refresh a {
+  color: GrayText;
+  text-decoration: none;
+}
+
+#refresh a:visited {
+  color: GrayText;
+}
+
 table {
   margin-top: 8px;
   border-collapse: separate;

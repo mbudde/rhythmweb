@@ -28,6 +28,12 @@ function secs2str(s) {
         return [mins, secs].join(":");
 }
 
+function control(act, callback) {
+    if (!callback)
+        var callback = update_info
+    $.post("control", {action: act}, callback, "xml");
+}
+
 function update_playing_time() {
     if (info["state"] == "stopped")
         $("#playingtime").html("")
@@ -80,22 +86,20 @@ function update_info(data) {
             clearTimeout(info["timeout_id"]);
         if (info["state"] == "playing")
             info["timeout_id"] = setTimeout(function() {
-                $.post("control", {action: "info"}, update_info, "xml");
+                control("info");
             }, remaining*1000);
     }
 }
 
 $(function() {
     $("#artist, #album, #stream").hide();
-    $.post("control", {action: "info"}, update_info, "xml");
+    control("info");
 
     $("#toolbar button").click(function(e) {
-        $.post(
-            "control",
-            {action: $(this).attr("value")},
-            update_info,
-            "xml"
-        );
+        control($(this).attr("value"));
+    });
+    $("#refresh").click(function(e) {
+        control("info");
     });
 
     setInterval(update_playing_time, 1000);
