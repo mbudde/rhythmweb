@@ -53,19 +53,10 @@ var PlayingInfo = new Class({
             this.options.elements.title.show()
                 .getChildren('cite').set('text', 'Not Playing');
         }
-        this.duration = obj.duration;
-        if (obj.finish_time && this.duration) {
-            var now = new Date();
-            var remaining = obj.finish_time - now.getTime();
-            remaining = (remaining/1000).round();
-            this.played = this.duration - remaining;
-        }
-        else if (obj.played && obj.played_time) {
-            var now = new Date();
-            var corr_time = now.getTime() - obj.played_time;
-            corr_time = (corr_time/1000).round();
-            this.played = obj.played + corr_time;
-        }
+        if (obj.duration)
+            this.duration = obj.duration;
+        if (obj.played)
+            this.played = obj.played;
     },
 
     update: function() {

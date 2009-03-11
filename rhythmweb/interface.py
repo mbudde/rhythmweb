@@ -109,13 +109,7 @@ class RhythmwebInterface(object):
                 played = 0
             else:
                 played = self.player.get_playing_time()
-            if info['duration'] == 0:
-                info['played'] = played
-                info['played_time'] = int(time.time()*1000)
-            else:
-                finish_time = time.time() + \
-                        info['duration']-played
-                info['finish_time'] = int(finish_time*1000)
+            info['played'] = played
 
         if action in ['vol-up', 'vol-down', 'info']:
             info['volume'] = self.player.get_volume()
