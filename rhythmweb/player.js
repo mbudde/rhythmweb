@@ -53,9 +53,9 @@ var PlayingInfo = new Class({
             this.options.elements.title.show()
                 .getChildren('cite').set('text', 'Not Playing');
         }
-        if (obj.duration)
+        if (obj.duration != null)
             this.duration = obj.duration;
-        if (obj.played)
+        if (obj.played != null)
             this.played = obj.played;
     },
 
