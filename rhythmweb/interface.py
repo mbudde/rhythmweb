@@ -17,11 +17,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-from datetime import datetime, timedelta
+import time;
 from xml.dom.minidom import getDOMImplementation
 from socket import gethostname
 
 import rhythmdb
+
+import json
 
 class RhythmwebInterface(object):
     """Take care of sending html and xml to the client and handle
@@ -48,7 +50,7 @@ class RhythmwebInterface(object):
     def handle_action(self, action, start_response):
         """Handle an Ajax request forwarded to us from the server.
         Depending on the action we might respond with some info in
-        xml format."""
+        JSON format."""
         if action == 'play':
             self.play_pause()
         elif action == 'next':
@@ -60,10 +62,10 @@ class RhythmwebInterface(object):
         elif action == 'vol-down':
             self.volume_down()
 
-        headers = [('Content-type', 'text/xml; charset=UTF-8')]
+        headers = [('Content-type', 'application/json; charset=UTF-8')]
         start_response('200 OK', headers)
         info = self.player_info(action)
-        return dict2xml(info, 'info')
+        return json.write(info)
 
     def player_info(self, action=None):
         """Gather info about the playing song and the state of
@@ -109,11 +111,11 @@ class RhythmwebInterface(object):
                 played = self.player.get_playing_time()
             if info['duration'] == 0:
                 info['played'] = played
-                info['played_time'] = datetime.utcnow().ctime()
+                info['played_time'] = int(time.time()*1000)
             else:
-                finish_time = datetime.utcnow() + \
-                        timedelta(seconds=info['duration']-played)
-                info['finish_time'] = finish_time.ctime()
+                finish_time = time.time() + \
+                        info['duration']-played
+                info['finish_time'] = int(finish_time*1000)
 
         if action in ['vol-up', 'vol-down', 'info']:
             info['volume'] = self.player.get_volume()

@@ -5,124 +5,169 @@
  * See COPYING for license information.
  */
 
-info = {};
-info["played"] = null;
-info["duration"] = null;
-info["state"] = null;
-info["timeout_id"] = null;
+var PlayingInfo = new Class({
+    Implements: [Options, Events],
 
-function getelem(expr, context) {
-    var elem = $(expr, context);
-    return (elem.length == 0) ? null : elem;
-}
+    options: {
+        elements: new Hash({
+            title: 'title',
+            artist: 'artist',
+            album: 'album',
+            stream: 'stream',
+            time: 'time'
+        }),
+        onUpdate: $empty
+    },
 
-function secs2str(s) {
-    var hours = Math.floor(s/60/60);
-    var mins = Math.floor(s/60-hours*60);
-    var secs = Math.floor(s-hours*60-mins*60);
-    var secs = (secs < 10) ? "0"+secs : secs;
-    if (hours > 0)
-        return [hours, mins, secs].join(":");
-    else
-        return [mins, secs].join(":");
-}
-
-function control(act, callback) {
-    if (!callback)
-        var callback = update_info
-    $.post("control", {action: act}, callback, "xml");
-}
-
-function update_playing_time() {
-    if (info["state"] == "stopped")
-        $("#playingtime").html("");
-    else {
-        if (info["duration"] != 0) { /* Playing a song */
-            if (info["played"] <= info["duration"])
-                $("#playingtime").html(
-                    secs2str(info["played"]) + " of " +
-                    secs2str(info["duration"])
-                );
-        }
-        else { /* Playing a stream */
-            $("#playingtime").html(secs2str(info["played"]));
-        }
-        if (info["state"] == "playing") 
-            info["played"] += 1;
-    }
-}
-    
-function update_info(data) {
-    if (state = getelem("state", data)) {
-        info["state"] = state.text();
-        if (state.text() == "playing")
-            $("#toolbar #play").addClass("active");
-        if (state.text() == "paused" || state.text() == "stopped")
-            $("#toolbar #play").removeClass("active");
-    }
-    if (info["state"] != "stopped") {
-        var tags = ["title", "artist", "album", "stream"];
-        for (var i in tags) {
-            var elem = getelem(tags[i], data);
-            if (elem) {
-                if (elem.text() != "")
-                    $("#"+tags[i]+" > cite").html(elem.text()).parent().show();
-                else
-                    $("#"+tags[i]).hide();
+    initialize: function(options) {
+        this.setOptions(options);
+        this.state = null;
+        this.duration = null;
+        this.played = null;
+        this.options.elements = new Hash(this.options.elements);
+        this.options.elements = this.options.elements.map(
+            function(value, key) {
+                return $(value);            
             }
-        }
-        var duration = getelem("duration", data);
-        if (duration) {
-            if (info["timeout_id"])
-                clearTimeout(info["timeout_id"]);
-            info["duration"] = parseInt(duration.text());
-            if (info["duration"] != 0) {
-                /* We are playing a song so update info when the song ends */
-                var finish_time = getelem("finish_time", data);
-                var finish = new Date(Date.parse(finish_time.text()+" UTC"));
-                var now = new Date();
-                var remaining = Math.floor((finish - now)/1000);
-                info["played"] = info["duration"] - remaining;
-                if (info["state"] == "playing")
-                    info["timeout_id"] = setTimeout(function() {
-                        control("info");
-                    }, remaining*1000);
-            }
-            else {
-                /* We are playing a stream; update info again in one minute. */
-                var played = getelem("played", data);
-                var played_time = getelem("played_time", data);
-                if (played && played_time) {
-                    played = parseInt(played.text());
-                    played_time = new Date(Date.parse(played_time.text()+" UTC"));
-                    var now = new Date();
-                    var corr_time = Math.floor((now - played_time)/1000);
-                    played += corr_time;
+        );
+    },
+
+    parse: function(obj) {
+        this.state = obj.state;
+        if (this.state && this.state != 'stopped') {
+            this.options.elements.each(function(elem, key) {
+                if (key in obj) {
+                    if (obj[key] == '')
+                        elem.hide();
+                    else
+                        elem.show()
+                            .getChildren('cite')
+                            .set('text', obj[key]);
                 }
-                else {
-                    played = 0;
-                }
-                info["played"] = played;
-                info["timeout_id"] = setTimeout(function() {
-                    control("info");
-                }, 60000);
-            }
+            });
+        }
+        else { /* Playback is stopped */
+            this.options.elements.each(function(elem) {
+                elem.hide().getChildren('cite').set('text', '');
+            });
+            this.options.elements.title.show()
+                .getChildren('cite').set('text', 'Not Playing');
+        }
+        this.duration = obj.duration;
+        if (obj.finish_time && this.duration) {
+            var now = new Date();
+            var remaining = obj.finish_time - now.getTime();
+            remaining = (remaining/1000).round();
+            this.played = this.duration - remaining;
+        }
+        else if (obj.played && obj.played_time) {
+            var now = new Date();
+            var corr_time = now.getTime() - obj.played_time;
+            corr_time = (corr_time/1000).round();
+            this.played = obj.played + corr_time;
+        }
+    },
+
+    update: function() {
+        if (this.state == 'stopped')
+            this.options.elements.time.set('text', '');
+        else {
+            this.options.elements.time
+                .set('text', this.timeToString());
+        }
+        if ((this.state == 'playing') &&
+            ((this.duration == 0) ||
+            (this.played < this.duration)))
+            this.played += 1;
+    },
+
+    timeToString: function() {
+        if (this.duration != 0)
+            return this.secondsToPretty(this.played) + ' of ' +
+                this.secondsToPretty(this.duration);
+        else
+            return this.secondsToPretty(this.played);
+    },
+
+    secondsToPretty: function(s) {
+        var hours = Math.floor(s/60/60);
+        var mins = Math.floor(s/60-hours*60);
+        var secs = Math.floor(s-hours*60-mins*60);
+        var secs = (secs < 10) ? "0"+secs : secs;
+        if (hours > 0)
+            return [hours, mins, secs].join(":");
+        else
+            return [mins, secs].join(":");
+    }
+});
+
+var Player = new Class({
+    Implements: [Options, Events],
+
+    options: {
+        elements: null,
+        onUpdated: $empty
+    },
+
+    initialize: function(options) {
+        this.setOptions(options);
+        this.controlRequest = new Request.JSON({
+            url: 'control',
+            onSuccess: this.handleRequest.bind(this)
+        });
+        this.playing_info = new PlayingInfo();
+        this.playing_info.update.periodical(1000, this.playing_info);
+        this.timeout_id = null;
+    },
+
+    sendRequest: function(request) {
+        if (typeof(request) == 'string')
+            this.controlRequest.send({data: {action: request}});
+        else
+            this.controlRequest.send({data: request});
+    },
+
+    handleRequest: function(obj) {
+        if ('state' in obj) {
+            this.state = obj['state'];
+            if (this.state == 'playing')
+                $('play').addClass('active');
+            else 
+                $('play').removeClass('active');
+        }
+        this.playing_info.parse(obj);
+        if (this.timeout_id)
+            this.timeout_id = $clear(this.timeout_id);
+        if (this.state == 'playing') {
+            var update_in = (this.playing_info.duration - 
+                this.playing_info.played)*1000;
+            this.timeout_id = this.sendRequest.delay(
+                update_in,
+                this,
+                'info'
+            );
         }
     }
-    else { /* Player is stopped. */
-        $("#playing cite").html("").parent().hide();
-        $("#title cite").html("Not Playing").parent().show();
-    }
-}
+});
 
-$(function() {
-    $("#artist, #album, #stream").hide();
-    control("info");
-
-    $("#toolbar button").click(function() {
-        control($(this).attr("value"));
+window.addEvent('domready', function() {
+    Element.implement({
+        show: function() {
+            this.setStyle('display', '');
+            return this;
+        },
+        hide: function() {
+            this.setStyle('display', 'none');
+            return this;
+        }
     });
-    $("#refresh").click(function() {control("info");});
 
-    setInterval(update_playing_time, 1000);
+    var player = new Player();
+    $$('#toolbar button').addEvent('click', function() {
+        player.sendRequest(this.value);
+    });
+    $$('#refresh a').addEvent('click', function() {
+        player.sendRequest('info');
+    });
+    player.sendRequest('info');
 });
