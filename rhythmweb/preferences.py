@@ -68,3 +68,27 @@ class RhythmwebPrefs(PreferenceManager):
 
         self.add_pref('port', 8000)
 
+
+class RhythmwebPrefsDialog(object):
+    
+    def __init__(self, plugin):
+        self.plugin = plugin
+        glade_file = plugin.find_file('rhythmweb-prefs.glade')
+        gladexml = gtk.glade.XML(glade_file)
+
+        self.dialog = gladexml.get_widget('dialog')
+        self.port = gladexml.get_widget('port')
+        self.port.set_value(self.plugin.prefs['port'].get())
+
+        self.dialog.connect('response', self.dialog_response)
+
+    def shutdown(self):
+        del self.plugin
+
+    def dialog_response(self, dialog, response):
+        self.plugin.prefs['port'].set(int(self.port.get_value()))
+        dialog.hide()
+        
+    def get_dialog(self):
+        return self.dialog
+

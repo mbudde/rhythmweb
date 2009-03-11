@@ -41,7 +41,7 @@ try:
 except:
     use_mdns = False
 
-from preferences import RhythmwebPrefs
+from preferences import RhythmwebPrefs, RhythmwebPrefsDialog
 from interface import RhythmwebInterface
 
 
@@ -55,6 +55,7 @@ class RhythmwebPlugin(rb.Plugin):
         self.shell = shell
         self.player = shell.get_player()
         self.prefs = RhythmwebPrefs()
+        self.prefs_dialog = RhythmwebPrefsDialog(self)
         self.server = RhythmwebServer('', self.prefs['port'].get(), self)
         self._mdns_publish()
 
@@ -62,11 +63,19 @@ class RhythmwebPlugin(rb.Plugin):
         self._mdns_withdraw()
         self.server.shutdown()
         self.prefs.shutdown()
+        self.prefs_dialog.shutdown()
         del self.server
         del self.prefs
+        del self.prefs_dialog
         del self.player
         del self.shell
         del self.db
+
+    def create_configure_dialog(self, dialog=None):
+        if not dialog:
+            dialog = self.prefs_dialog.get_dialog()
+        dialog.present()
+        return dialog
 
     def _mdns_publish(self):
         if use_mdns:
