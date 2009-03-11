@@ -138,6 +138,44 @@ var Player = new Class({
                 'info'
             );
         }
+        this.fireEvent('update');
+    }
+});
+
+var Playlist = new Class({
+    Implements: [Options, Events],
+
+    options: {
+        action: null,
+        element: null,
+        onUpdate: $empty
+    },
+
+    initialize: function(options) {
+        this.setOptions(options);
+        this.playlistRequest = new Request.JSON({
+            url: 'control',
+            data: {action: this.options.action},
+            onSuccess: this.populate.bind(this)
+        });
+        this.options.element = $(this.options.element);
+    },
+
+    sendRequest: function() {
+        this.playlistRequest.send();
+    },
+
+    populate: function(obj) {
+        var tbody = this.options.element.getChildren('tbody')[0];
+        tbody.empty();
+        obj.each(function(entry) {
+            var row = new Element('tr');
+            new Element('td', {text: entry.title}).inject(row)
+            new Element('td', {text: entry.artist}).inject(row)
+            new Element('td', {text: entry.album}).inject(row)
+            row.inject(tbody);
+        });
+        this.fireEvent('update');
     }
 });
 
@@ -153,7 +191,13 @@ window.addEvent('domready', function() {
         }
     });
 
-    var player = new Player();
+    var playlist = new Playlist({
+        action: 'get-queue',
+        element: $('playlist')
+    });
+    var player = new Player({
+        onUpdate: playlist.sendRequest.bind(playlist)
+    });
     $$('#toolbar button').addEvent('click', function() {
         player.sendRequest(this.value);
     });

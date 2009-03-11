@@ -51,6 +51,7 @@ class RhythmwebInterface(object):
         """Handle an Ajax request forwarded to us from the server.
         Depending on the action we might respond with some info in
         JSON format."""
+        response_obj = None
         if action == 'play':
             self.play_pause()
         elif action == 'next':
@@ -61,11 +62,14 @@ class RhythmwebInterface(object):
             self.volume_up()
         elif action == 'vol-down':
             self.volume_down()
+        elif action == 'get-queue':
+            response_obj = self.get_queue()
 
         headers = [('Content-type', 'application/json; charset=UTF-8')]
         start_response('200 OK', headers)
-        info = self.player_info(action)
-        return json.write(info)
+        if response_obj == None:
+            response_obj = self.player_info(action)
+        return json.write(response_obj)
 
     def player_info(self, action=None):
         """Gather info about the playing song and the state of
@@ -115,6 +119,23 @@ class RhythmwebInterface(object):
             info['volume'] = self.player.get_volume()
 
         return info
+
+    def get_queue(self):
+        db = self.plugin.db
+        queue_source = self.plugin.shell.props.queue_source
+        queue_rows = queue_source.props.query_model
+        queue = []
+        for row in queue_rows:
+            queue_entry = row[0]
+            entry = {}
+            entry['title'] = db.entry_get(queue_entry,
+                                          rhythmdb.PROP_TITLE)
+            entry['artist'] = db.entry_get(queue_entry,
+                                           rhythmdb.PROP_ARTIST)
+            entry['album'] = db.entry_get(queue_entry,
+                                          rhythmdb.PROP_ALBUM)
+            queue.append(entry)
+        return queue
 
     def play_pause(self):
         self.player.playpause()
