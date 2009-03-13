@@ -127,7 +127,7 @@ var Player = new Class({
     },
 
     sendRequest: function(request) {
-        if (typeof(request) == 'string')
+        if ($type(request) == 'string')
             this.controlRequest.send({data: {action: request}});
         else
             this.controlRequest.send({data: request});
