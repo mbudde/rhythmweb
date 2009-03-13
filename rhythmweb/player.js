@@ -30,9 +30,10 @@ var PlayingInfo = new Class({
                 return $(value);            
             }
         );
+        this.tick.periodical(1000, this);
     },
 
-    parse: function(obj) {
+    update: function(obj) {
         this.state = obj.state;
         if (this.state && this.state != 'stopped') {
             this.options.elements.each(function(elem, key) {
@@ -57,9 +58,10 @@ var PlayingInfo = new Class({
             this.duration = obj.duration;
         if (obj.played != null)
             this.played = obj.played;
+        this.fireEvent('update');
     },
 
-    update: function() {
+    tick: function() {
         if (this.state == 'stopped')
             this.options.elements.time.set('text', '');
         else {
@@ -107,7 +109,6 @@ var Player = new Class({
             onSuccess: this.handleRequest.bind(this)
         });
         this.playing_info = new PlayingInfo();
-        this.playing_info.update.periodical(1000, this.playing_info);
         this.timeout_id = null;
     },
 
@@ -126,7 +127,7 @@ var Player = new Class({
             else 
                 $('play').removeClass('active');
         }
-        this.playing_info.parse(obj);
+        this.playing_info.update(obj);
         if (this.timeout_id)
             this.timeout_id = $clear(this.timeout_id);
         if (this.state == 'playing') {
