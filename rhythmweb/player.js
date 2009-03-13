@@ -80,7 +80,7 @@ var PlayingInfo = new Class({
             this.options.elements.time.set('text', '');
         else {
             this.options.elements.time
-                .set('text', this.timeToString());
+                .set('text', this.formatTime());
         }
         if ((this.state == 'playing') &&
             ((this.duration == 0) ||
@@ -88,23 +88,30 @@ var PlayingInfo = new Class({
             this.played += 1;
     },
 
-    timeToString: function() {
-        if (this.duration != 0)
-            return this.secondsToPretty(this.played) + ' of ' +
-                this.secondsToPretty(this.duration);
+    formatTime: function() {
+        if (this.duration > 0) {
+            if (this.duration > 3600)
+                return this.secsToStr(this.played, true) + ' of ' +
+                    this.secsToStr(this.duration); 
+            else
+                return this.secsToStr(this.played) + ' of ' +
+                    this.secsToStr(this.duration); 
+        }
         else
-            return this.secondsToPretty(this.played);
+            return this.secsToStr(this.played);
     },
-
-    secondsToPretty: function(s) {
-        var hours = Math.floor(s/60/60);
-        var mins = Math.floor(s/60-hours*60);
-        var secs = Math.floor(s-hours*60-mins*60);
-        var secs = (secs < 10) ? "0"+secs : secs;
-        if (hours > 0)
-            return [hours, mins, secs].join(":");
+    
+    secsToStr: function(s, hour_disp) {
+        var hours = Math.floor(s/3600);
+        var mins = Math.floor((s-hours*3600)/60);
+        var secs = Math.floor(s-hours*3600-mins*60);
+        secs = (secs < 10) ? '0'+secs : secs;
+        if (hours > 0 || hour_disp) {
+            mins = (mins < 10) ? '0'+mins : mins;
+            return [hours, mins, secs].join(':');
+        }
         else
-            return [mins, secs].join(":");
+            return [mins, secs].join(':');
     }
 });
 
