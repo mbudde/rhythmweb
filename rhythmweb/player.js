@@ -59,6 +59,7 @@ var PlayingInfo = new Class({
                             .set('text', obj[key]);
                 }
             });
+            this.options.elements.time.show();
         }
         else { /* Playback is stopped */
             this.options.elements.each(function(elem) {
