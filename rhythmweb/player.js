@@ -60,6 +60,8 @@ var PlayingInfo = new Class({
                 }
             });
             this.options.elements.time.show();
+            if (obj.title && obj.artist && document.title)
+                document.title = obj.title + ' - ' + obj.artist;
         }
         else { /* Playback is stopped */
             this.options.elements.each(function(elem) {
@@ -67,6 +69,8 @@ var PlayingInfo = new Class({
             });
             this.options.elements.title.show()
                 .getChildren('cite').set('text', 'Not Playing');
+            if (document.title)
+                document.title = 'Rhythmweb';
         }
         if (obj.duration != null)
             this.duration = obj.duration;
