@@ -44,7 +44,7 @@ class RhythmwebInterface(object):
         Ajax request to get info about playing song ect."""
         headers = [('Content-type', 'text/html; charset=UTF-8')]
         start_response('200 OK', headers)
-        player_html = open(self.plugin.find_file('player.html'))
+        player_html = open(self.plugin.find_file('client/player.html'))
         return player_html.read() % {'hostname': gethostname()}
 
     def handle_action(self, action, start_response):
