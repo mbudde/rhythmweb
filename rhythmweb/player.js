@@ -60,8 +60,11 @@ var PlayingInfo = new Class({
                 }
             });
             this.options.elements.time.show();
-            if (obj.title && obj.artist && document.title)
+            if (obj.title && obj.artist && document.title) {
                 document.title = obj.title + ' - ' + obj.artist;
+                if (this.state == 'paused')
+                    document.title = '[Paused] ' + document.title;
+            }
         }
         else { /* Playback is stopped */
             this.options.elements.each(function(elem) {
