@@ -1,8 +1,6 @@
+## Rhythmweb - A web site for your Rhythmbox ##
 
-  Rhythmweb - a web site for your Rhythmbox.
-  Copyright (C) 2007 Michael Gratton.
-
-Rhythmweb lets you control Rhythmbox <http://www.gnome.org/projects/rhythmbox/>
+Rhythmweb lets you control [Rhythmbox](http://www.gnome.org/projects/rhythmbox/)
 remotely, from your web browser. It is not an Internet radio server - it does
 not play music in your web browser, rather it lets you control Rhythmbox
 on a machine other than the one it is running on.
@@ -10,36 +8,37 @@ on a machine other than the one it is running on.
 Rhythmweb was inspired by Joe Shaw's Banshee Media Server, which /is/ a
 Internet radio server.
 
-For more information and the latest releases, go to the Rhythmweb
-web site: <http://web.vee.net/projects/rhythmweb>
+This version is a fork of the original project created by Michael Gratton.
+The original version is available from [his website](http://web.vee.net/projects/rhythmweb).
 
-  Requirements
+### Requirements ###
 
 To use Rhythmweb, you must have the following installed:
 
  - Rhythmbox v0.11 (v0.10 might work)
  - Python 2.5.
+ - python-gconf
+ - python-gtk2
+ - python-gobject
 
-  Installation
+### Installation ###
 
-To install Rhythmweb, copy the `rhythmweb' directory to
-`~/.gnome2/rhythmbox/plugins', start Rhythmbox, go to the Edit > Plugins...
-menu and check the Enabled checkbox for Rhythmweb.
+To install Rhythmweb run the following command as root:
+    make install
+To install in the local plugin dir use:
+    make install-user
+This will install the plugin to `~/.local/share/rhythmbox/plugins' which
+requires you use atleast Rhythmbox 0.12.0. Are you using an older version use:
+    DESTDIR=~/.gnome2/rhythmbox/plugins make install
 
-Then browse to the machine running on port 8000, eg: http://you-rb-host:8080/
+When the plugin has been enabled in Rhythmbox you can browse to the machine
+running Rhythmbox (per default the server will listen to port 8000, but that can
+be changed in the plugin preferences), eg: http://you-rb-host:8000/
 
-  TODO
+### License ###
 
-Things I'm planning on doing (patches greatly appreciated).
-
- - Playlist editing
- - AJAX bling
- - Configurable port number, etc
- - Login-based security, public version of the player
- - REST web services API
- - Support an alternative wsgiref (to support older versions of Python)
-
-  License
+Copyright (C) 2007 Michael Gratton.  
+Copyright (C) 2009 Michael Budde.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
