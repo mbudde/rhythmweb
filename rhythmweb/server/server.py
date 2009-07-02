@@ -154,30 +154,3 @@ def parse_post(environ):
             return cgi.parse_multipart(environ['wsgi.input'].read(length))
     return None
 
-def return_redirect(path, environ, response):
-    if not path.startswith('/'):
-        path_prefix = environ['REQUEST_URI']
-        if path_prefix.endswith('/'):
-            path = path_prefix + path
-        else:
-            path = path_prefix.rsplit('/', 1)[0] + path
-    scheme = environ['wsgi.url_scheme']
-    if 'HTTP_HOST' in environ:
-        authority = environ['HTTP_HOST']
-    else:
-        authority = environ['SERVER_NAME']
-    port = environ['SERVER_PORT']
-    if ((scheme == 'http' and port != '80') or
-        (scheme == 'https' and port != '443')):
-        authority = '%s:%s' % (authority, port)
-    location = '%s://%s%s' % (scheme, authority, path)
-    status = '303 See Other'
-    response_headers = [('Content-Type', 'text/plain'),
-                        ('Location', location)]
-    response(status, response_headers)
-    return [ 'Redirecting...' ]
-
-def resolve_path(path):
-    return os.path.join(os.path.dirname(__file__), path)
-
-
