@@ -18,6 +18,21 @@
  *
  */
 
+
+function secsToStr(s, hour_disp) {
+    var hours = Math.floor(s/3600);
+    var mins = Math.floor((s-hours*3600)/60);
+    var secs = Math.floor(s-hours*3600-mins*60);
+    secs = (secs < 10) ? '0'+secs : secs;
+    if (hours > 0 || hour_disp) {
+        mins = (mins < 10) ? '0'+mins : mins;
+        return [hours, mins, secs].join(':');
+    }
+    else
+        return [mins, secs].join(':');
+}
+
+
 var PlayingInfo = new Class({
     Implements: [Options, Events],
 
@@ -98,27 +113,14 @@ var PlayingInfo = new Class({
     formatTime: function() {
         if (this.duration > 0) {
             if (this.duration > 3600)
-                return this.secsToStr(this.played, true) + ' of ' +
-                    this.secsToStr(this.duration);
+                return secsToStr(this.played, true) + ' of ' +
+                    secsToStr(this.duration);
             else
-                return this.secsToStr(this.played) + ' of ' +
-                    this.secsToStr(this.duration);
+                return secsToStr(this.played) + ' of ' +
+                    secsToStr(this.duration);
         }
         else
-            return this.secsToStr(this.played);
-    },
-
-    secsToStr: function(s, hour_disp) {
-        var hours = Math.floor(s/3600);
-        var mins = Math.floor((s-hours*3600)/60);
-        var secs = Math.floor(s-hours*3600-mins*60);
-        secs = (secs < 10) ? '0'+secs : secs;
-        if (hours > 0 || hour_disp) {
-            mins = (mins < 10) ? '0'+mins : mins;
-            return [hours, mins, secs].join(':');
-        }
-        else
-            return [mins, secs].join(':');
+            return secsToStr(this.played);
     }
 });
 
@@ -202,6 +204,7 @@ var Playlist = new Class({
             new Element('td', {text: entry.title}).inject(row)
             new Element('td', {text: entry.artist}).inject(row)
             new Element('td', {text: entry.album}).inject(row)
+            new Element('td', {text: secsToStr(entry.duration)}).inject(row)
             row.inject(tbody);
         });
         this.fireEvent('update');

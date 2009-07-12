@@ -134,6 +134,8 @@ class RhythmwebInterface(object):
                                            rhythmdb.PROP_ARTIST)
             entry['album'] = db.entry_get(queue_entry,
                                           rhythmdb.PROP_ALBUM)
+            entry['duration'] = db.entry_get(queue_entry,
+                                             rhythmdb.PROP_DURATION)
             queue.append(entry)
         return queue
 
