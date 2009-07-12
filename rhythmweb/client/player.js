@@ -40,7 +40,7 @@ var PlayingInfo = new Class({
         this.options.elements = new Hash(this.options.elements);
         this.options.elements = this.options.elements.map(
             function(value, key) {
-                return $(value);            
+                return $(value);
             }
         );
         this.tick.periodical(1000, this);
@@ -99,15 +99,15 @@ var PlayingInfo = new Class({
         if (this.duration > 0) {
             if (this.duration > 3600)
                 return this.secsToStr(this.played, true) + ' of ' +
-                    this.secsToStr(this.duration); 
+                    this.secsToStr(this.duration);
             else
                 return this.secsToStr(this.played) + ' of ' +
-                    this.secsToStr(this.duration); 
+                    this.secsToStr(this.duration);
         }
         else
             return this.secsToStr(this.played);
     },
-    
+
     secsToStr: function(s, hour_disp) {
         var hours = Math.floor(s/3600);
         var mins = Math.floor((s-hours*3600)/60);
@@ -152,14 +152,14 @@ var Player = new Class({
             this.state = obj['state'];
             if (this.state == 'playing')
                 $('play').addClass('active');
-            else 
+            else
                 $('play').removeClass('active');
         }
         this.playing_info.update(obj);
         if (this.timeout_id)
             this.timeout_id = $clear(this.timeout_id);
         if (this.state == 'playing') {
-            var update_in = (this.playing_info.duration - 
+            var update_in = (this.playing_info.duration -
                 this.playing_info.played)*1000;
             this.timeout_id = this.sendRequest.delay(
                 update_in,

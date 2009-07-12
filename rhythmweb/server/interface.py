@@ -26,7 +26,7 @@ import rhythmdb
 import json
 
 class RhythmwebInterface(object):
-    """Take care of sending html and xml to the client and handle
+    """Takes care of sending HTML and JSON to the client and handle
     the Ajax requests the client sends."""
 
     def __init__(self, plugin):
@@ -40,8 +40,8 @@ class RhythmwebInterface(object):
         del self.db
 
     def send(self, start_response):
-        """Send player html to the client. The client must send a
-        Ajax request to get info about playing song ect."""
+        """Send player HTML to the client. The client must send a
+        Ajax request to get info about playing song, ect."""
         headers = [('Content-type', 'text/html; charset=UTF-8')]
         start_response('200 OK', headers)
         player_html = open(self.plugin.find_file('client/player.html'))

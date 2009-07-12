@@ -70,7 +70,7 @@ class RhythmwebPrefs(PreferenceManager):
 
 
 class RhythmwebPrefsDialog(object):
-    
+
     def __init__(self, plugin):
         self.plugin = plugin
         glade_file = plugin.find_file('rhythmweb-prefs.glade')
@@ -88,7 +88,7 @@ class RhythmwebPrefsDialog(object):
     def dialog_response(self, dialog, response):
         self.plugin.prefs['port'].set(int(self.port.get_value()))
         dialog.hide()
-        
+
     def get_dialog(self):
         return self.dialog
 

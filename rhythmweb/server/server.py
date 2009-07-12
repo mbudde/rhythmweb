@@ -33,7 +33,7 @@ class RhythmwebServer(object):
     def __init__(self, hostname, port, plugin):
         self.plugin = plugin
         self.running = True
-        self._httpd = make_server(hostname, port, self._wsgi,         
+        self._httpd = make_server(hostname, port, self._wsgi,
                                   handler_class=LoggingWSGIRequestHandler)
         self._watch_cb_id = gobject.io_add_watch(self._httpd.socket,
                                                  gobject.IO_IN,
