@@ -62,6 +62,10 @@ class RhythmwebInterface(object):
             self.volume_up()
         elif action == 'vol-down':
             self.volume_down()
+        elif action == 'repeat':
+            self.toggle_repeat()
+        elif action == 'shuffle':
+            self.toggle_shuffle()
         elif action == 'get-queue':
             response_obj = self.get_queue()
 
@@ -118,6 +122,9 @@ class RhythmwebInterface(object):
         if action in ['vol-up', 'vol-down', 'info']:
             info['volume'] = self.player.get_volume()
 
+        if action in ['repeat', 'shuffle', 'info']:
+            info['shuffle'], info['repeat'] = self.player.get_playback_state()
+
         return info
 
     def get_queue(self):
@@ -153,4 +160,12 @@ class RhythmwebInterface(object):
 
     def volume_down(self):
         self.player.set_volume_relative(-0.1)
+
+    def toggle_repeat(self):
+        shuffle, repeat = self.player.get_playback_state()
+        self.player.set_playback_state(shuffle, not repeat)
+
+    def toggle_shuffle(self):
+        shuffle, repeat = self.player.get_playback_state()
+        self.player.set_playback_state(not shuffle, repeat)
 

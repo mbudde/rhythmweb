@@ -157,6 +157,20 @@ var Player = new Class({
             else
                 $('play').removeClass('active');
         }
+        if ('shuffle' in obj) {
+            this.shuffle = obj['shuffle'];
+            if (this.shuffle)
+                $('shuffle').addClass('active');
+            else
+                $('shuffle').removeClass('active');
+        }
+        if ('repeat' in obj) {
+            this.repeat = obj['repeat'];
+            if (this.repeat)
+                $('repeat').addClass('active');
+            else
+                $('repeat').removeClass('active');
+        }
         this.playing_info.update(obj);
         if (this.timeout_id)
             this.timeout_id = $clear(this.timeout_id);
