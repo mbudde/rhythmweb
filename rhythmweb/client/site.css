@@ -56,7 +56,9 @@ html, body {
 #pause,
 #stop,
 #previous,
-#next {
+#next,
+#repeat,
+#shuffle {
   float: left;
 }
 
